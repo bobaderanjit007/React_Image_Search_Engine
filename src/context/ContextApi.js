@@ -9,6 +9,8 @@ const AppProvider = ({ children }) => {
     const [data , setData] = useState()
     const [loader, setLoader] = useState(false)
     const [pages, setPages] = useState(1)
+    const [isNull, setIsNull] = useState(false)
+
     const accessKey = 'IH0d1QLAS8W0H2KcoAnYrw0c7-ToQvnxZrw-v6Kk6RE';
     const url = `https://api.unsplash.com/search/photos?page=1&query=${input}&client_id=${accessKey}`
     
@@ -16,21 +18,21 @@ const AppProvider = ({ children }) => {
         setLoader(true)
         e.preventDefault()
         const res = await axios.get(url)
-        setData(res.data.results)
-        if(res.data.results === []){
-            setLoader(true)
+        const imgData = res.data.results.slice(0, -1);
+        setData(imgData)
+        if(res.data.results.length === 0){
+            setIsNull(true)
         }
         else{
-            setLoader(false)
+            setIsNull(false)
         }
+        setLoader(false)
     }
 
     async function showMore(){
         setLoader(true)
         const res = await axios.get(`https://api.unsplash.com/search/photos?page=${pages}&query=${input}&client_id=${accessKey}`)
-        console.log(data)
-        const imgData = [...data,...res.data.results]
-        console.log(imgData)
+        const imgData = [...data,...res.data.results].slice(0,-1)
         setData(imgData)
         setLoader(false)
     }
@@ -38,7 +40,8 @@ const AppProvider = ({ children }) => {
     useEffect(()=>{
         async function getImages(){
             const res = await axios.get(`https://api.unsplash.com/search/photos?&query=dog&client_id=${accessKey}`)
-            setData(res.data.results)
+            const imgData = res.data.results.slice(0, -1);
+            setData(imgData)
         }
         setPages(pages+1)
         getImages()
@@ -46,7 +49,7 @@ const AppProvider = ({ children }) => {
     },[])
 
     return (
-        <AppContext.Provider value={{setInput, data, setData, getImages, input, loader, showMore, setPages,pages}}>
+        <AppContext.Provider value={{setInput, data, setData, getImages, input, loader, showMore, setPages,pages, isNull}}>
             {children}
         </AppContext.Provider>
     )
